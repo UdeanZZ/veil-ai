@@ -79,37 +79,34 @@ const ChatPage = () => {
 
   if (!isLoaded || !isSignedIn) {
     return (
-      <div className="flex justify-center items-center h-screen text-white">
+      <div className="flex justify-center items-center h-screen">
         Loading ...
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen overflow-hidden bg-gray-900">
+    <div className="flex min-h-screen overflow-hidden">
       <aside className="hidden md:flex">
         <Sidebar />
       </aside>
       <div className="flex flex-col flex-1 md:ml-64">
-        <div className="flex items-center justify-between px-4 py-3 text-white">
+        <div className="flex items-center justify-between px-4 py-3">
           <div className="md:hidden">
             <Sheet>
               <SheetTrigger asChild>
                 <IoMenu size={22} className="cursor-pointer" />
               </SheetTrigger>
-              <SheetContent
-                side="left"
-                className="p-0 bg-[#0b1733] text-white w-64"
-              >
+              <SheetContent side="left" className="p-0 w-64">
                 <Sidebar />
               </SheetContent>
             </Sheet>
           </div>
 
-          <span className="text-xl font-bold">Veil AI</span>
+          <span className="text-xl font-bold">Veil.AI</span>
           <div className="flex items-center gap-4">
-            <button className="p-2 hover:bg-white/10 rounded-full">
-              <FaShareAlt size={18} />
+            <button className="p-2 hover:bg-accent hover:text-accent-foreground rounded-full transition">
+              <FaShareAlt className="text-muted-foreground" size={18} />
             </button>
             <UserButton />
           </div>
@@ -123,23 +120,23 @@ const ChatPage = () => {
         </div>
 
         <div className="p-4 md:px-8 md:w-[80%] w-full mx-auto">
-          <div className="rounded-4xl px-3 py-2 bg-linear-to-r from-[#19284b54] to-[#0b173396] border border-white/10 backdrop-blur-lg shadow-lg flex flex-col gap-3">
+          <div className="rounded-4xl px-3 py-2 bg-card border border-border shadow-lg flex flex-col gap-3">
             <div className="flex items-center p-2">
-              <IoAdd size={22} className="text-white/80 mr-3" />
+              <IoAdd size={22} className="mr-3 text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Ask Anything..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                className="flex-1 bg-transparent text-white placeholder-white/60 focus:outline-none"
+                className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none"
               />
             </div>
             <div className="flex gap-2 ml-3">
               <button
                 onClick={sendMessage}
                 disabled={loading}
-                className="flex text-white items-center cursor-pointer gap-1 px-6 py-1.5 rounded-full bg-white/40 hover:bg-white/50 transition"
+                className="flex items-center cursor-pointer gap-1 px-6 py-1.5 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition disabled:opacity-50"
               >
                 <IoSearch size={16} />
                 <span className="text-sm">Send</span>

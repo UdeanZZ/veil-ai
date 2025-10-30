@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <ClerkProvider>
       <html lang="en">
-        <body className={`${font.className} antialiased bg-[#2A3439]`}>
+        <body className={`${font.className} antialiased`}>
           {children}
         </body>
       </html>

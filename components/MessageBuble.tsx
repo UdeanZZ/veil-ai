@@ -38,8 +38,8 @@ const MessageBubble = ({ sender, text }: Props) => {
     <div
       className={`my-2 p-3 rounded-xl max-w-[80%] wrap-break-words ${
         sender == "user"
-          ? "self-end bg-blue-600 text-white"
-          : "self-start bg-gray-800 text-white"
+          ? "self-end bg-primary text-primary-foreground"
+          : "self-start bg-muted text-muted-foreground"
       }`}
     >
       {parts.map((part, idx) =>
