@@ -3,7 +3,6 @@ import MessageBubble from "@/components/MessageBuble";
 import Sidebar from "@/components/Sidebar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { UserButton, useUser } from "@clerk/nextjs";
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 import { FaShareAlt } from "react-icons/fa";
@@ -40,38 +39,98 @@ const ChatPage = () => {
 
     setMessages((prev) => [...prev, newMessage]);
 
+    const userInput = input;
     setInput("");
     setLoading(true);
 
+    // Add empty AI message that will be populated with streamed content
+    setMessages((prev) => [...prev, { sender: "ai", text: "" }]);
+
     try {
-      const res = await axios.post(
+      const response = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
         {
-          model: "openai/gpt-3.5-turbo",
-          messages: [
-            ...messages.map((m) => ({
-              role: m.sender === "user" ? "user" : "assistant",
-              content: m.text,
-            })),
-            { role: "user", content: input },
-          ],
-        },
-        {
+          method: "POST",
           headers: {
             Authorization: `Bearer ${process.env.NEXT_PUBLIC_OPENROUTER_API_KEY}`,
             "Content-Type": "application/json",
           },
+          body: JSON.stringify({
+            model: "openai/gpt-3.5-turbo",
+            messages: [
+              ...messages.map((m) => ({
+                role: m.sender === "user" ? "user" : "assistant",
+                content: m.text,
+              })),
+              { role: "user", content: userInput },
+            ],
+            stream: true,
+          }),
         }
       );
 
-      const aiReply = res.data.choices[0].message.content;
-      setMessages((prev) => [...prev, { sender: "ai", text: aiReply }]);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+
+      if (!reader) {
+        throw new Error("Response body is not readable");
+      }
+
+      let accumulatedText = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const data = line.slice(6);
+
+            if (data === "[DONE]") {
+              break;
+            }
+
+            try {
+              const parsed = JSON.parse(data);
+              const content = parsed.choices?.[0]?.delta?.content;
+
+              if (content) {
+                accumulatedText += content;
+                // Update the last message (AI message) with accumulated text
+                setMessages((prev) => {
+                  const newMessages = [...prev];
+                  newMessages[newMessages.length - 1] = {
+                    sender: "ai",
+                    text: accumulatedText,
+                  };
+                  return newMessages;
+                });
+              }
+            } catch (e) {
+              // Skip invalid JSON
+              continue;
+            }
+          }
+        }
+      }
     } catch (error) {
       console.log("OpenRouter API Error ", error);
-      setMessages((prev) => [
-        ...prev,
-        { sender: "ai", text: "Something went wrong" },
-      ]);
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        newMessages[newMessages.length - 1] = {
+          sender: "ai",
+          text: "Something went wrong",
+        };
+        return newMessages;
+      });
     } finally {
       setLoading(false);
     }
